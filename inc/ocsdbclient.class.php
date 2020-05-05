@@ -297,46 +297,50 @@ class PluginOcsinventoryngOcsDbClient extends PluginOcsinventoryngOcsClient {
 
                   if (self::WANTED_DICO_SOFT & $wanted) {
                      $query = "SELECT
-                                        IFNULL(`dico_soft`.`FORMATTED`, `softwares`.`NAME`) AS NAME,
-                                        `softwares`.`VERSION`,
-                                        `softwares`.`PUBLISHER`,
-                                        `softwares`.`COMMENTS`,
-                                        `softwares`.`FOLDER`,
-                                        `softwares`.`FILENAME`,
-                                        `softwares`.`FILESIZE`,
-                                        `softwares`.`SOURCE`,
-                                        `softwares`.`HARDWARE_ID`";
+                                        IFNULL(`dico_soft`.`FORMATTED`, `NAME`) AS NAME,
+                                        `VERSION`,
+                                        `PUBLISHER`,
+                                        `COMMENTS`,
+                                        `FOLDER`,
+                                        `FILENAME`,
+                                        `FILESIZE`,
+                                        `SOURCE`,
+                                        `HARDWARE_ID`";
                      if ($version['TVALUE'] > PluginOcsinventoryngOcsServer::OCS2_VERSION_LIMIT) {
-                        $query .= ",`softwares`.`GUID`,
-                                        `softwares`.`LANGUAGE`,
-                                        `softwares`.`INSTALLDATE`,
-                                        `softwares`.`BITSWIDTH`";
+                        $query .= ",`GUID`,
+                                        `LANGUAGE`,
+                                        `INSTALLDATE`,
+                                        `BITSWIDTH`";
                      }
-                     $query .= "FROM `softwares`
-                            INNER JOIN `dico_soft` ON (`softwares`.`NAME` = `dico_soft`.`EXTRACTED`)
-                            WHERE `softwares`.`HARDWARE_ID` IN (" . implode(',', $ids) . ")";
+                     $query .= "FROM `software` s LEFT JOIN software_name n ON s.NAME_ID = n.ID
+                                LEFT JOIN software_publisher p ON s.PUBLISHER_ID = p.ID
+                                LEFT JOIN software_version v ON s.VERSION_ID = v.ID
+                            INNER JOIN `dico_soft` ON (`software`.`NAME` = `dico_soft`.`EXTRACTED`)
+                            WHERE `HARDWARE_ID` IN (" . implode(',', $ids) . ")";
                   } else {
                      $query = "SELECT
-                                        `softwares`.`NAME`,
-                                        `softwares`.`VERSION`,
-                                        `softwares`.`PUBLISHER`,
-                                        `softwares`.`COMMENTS`,
-                                        `softwares`.`FOLDER`,
-                                        `softwares`.`FILENAME`,
-                                        `softwares`.`FILESIZE`,
-                                        `softwares`.`SOURCE`,
-                                        `softwares`.`HARDWARE_ID`";
+                                        `NAME`,
+                                        `VERSION`,
+                                        `PUBLISHER`,
+                                        `COMMENTS`,
+                                        `FOLDER`,
+                                        `FILENAME`,
+                                        `FILESIZE`,
+                                        `SOURCE`,
+                                        `HARDWARE_ID`";
                      if ($version['TVALUE'] > PluginOcsinventoryngOcsServer::OCS2_VERSION_LIMIT) {
-                        $query .= ",`softwares`.`GUID`,
-                                  `softwares`.`LANGUAGE`,
-                                  `softwares`.`INSTALLDATE`,
-                                  `softwares`.`BITSWIDTH`";
+                        $query .= ",`GUID`,
+                                  `LANGUAGE`,
+                                  `INSTALLDATE`,
+                                  `BITSWIDTH`";
                      }
-                     $query .= "FROM `softwares`
-                             WHERE `softwares`.`HARDWARE_ID` IN (" . implode(',', $ids) . ")";
+                     $query .= "FROM `software` s LEFT JOIN software_name n ON s.NAME_ID = n.ID
+                                LEFT JOIN software_publisher p ON s.PUBLISHER_ID = p.ID
+                                LEFT JOIN software_version v ON s.VERSION_ID = v.ID
+                             WHERE `HARDWARE_ID` IN (" . implode(',', $ids) . ")";
                   }
 
-                  $query   .= "ORDER BY `id` DESC";
+                  $query   .= "ORDER BY s.`id` DESC";
                   $request = $this->db->query($query);
                   while ($software = $this->db->fetch_assoc($request)) {
                      $computers[$software['HARDWARE_ID']]["SOFTWARES"][] = $software;
